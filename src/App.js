@@ -55,15 +55,13 @@ class LetterCell extends React.Component
   constructor(props)
   {
     super(props);
-
-    this.state = { isHidden: this.props.isHidden };
   }
 
   render()
   {
     return (
       <div className="letter-cell">
-        <label className="letter">{this.state.isHidden ? " " : this.props.letter}</label>
+        <label className="letter">{this.props.isHidden ? "" : this.props.letter}</label>
         <div className="letter-underscore"></div>             
       </div>
     );
@@ -81,17 +79,37 @@ class HiddenWord extends React.Component
     const letterArray = [];
     for (let i = 0; i < this.word.length; ++i)
     {
-      letterArray.push(<LetterCell className="letter-cell" letter={this.word[i]} isHidden={true} />);
+      letterArray.push({ letter: this.word[i], isHidden: false });
     }
 
     this.state = { letterArray };
+  }
+
+  updateWord = (letter) =>
+  {
+    const letterArray = this.state.letterArray;
+    
+    while (true)
+    {
+      const element = letterArray.find((element) => element.isHidden && element.letter == letter);
+      if (!element)
+      {
+        break;
+      }
+      element.isHidden = false;
+    }
+
+    this.setState({ letterArray });
   }
 
   render()
   {
     return (
       <div className="hidden-word">
-      { this.state.letterArray }
+      { this.state.letterArray.map((element) => 
+      {
+        return <LetterCell className="letter-cell" letter={element.letter} isHidden={element.isHidden} />;
+      }) }
       </div>
     );
   }
@@ -103,29 +121,37 @@ class Game extends React.Component
   {
     super();
 
-    this.word = "lolita";
+    this.hiddenWord = React.createRef();
 
-    this.imagePath = "/home/predator/Programs/Js/hangman/public/images/";
+    this.state = { word: "LOLITA" };
+
+    this.imageFolder = "/images/";
+    this.imageName = 7;
     this.imageExt = ".png";
+  }
+
+  componentWillMount()
+  {
+    fetch("http://localhost:4000/getRandomWord")
+      .then(response => response.json())    
+      .then(response => this.setState({ word: response.word }));
   }
 
   onLetterClick = (letter) =>
   {
-    prompt(letter);
+    this.hiddenWord.current.updateWord(letter);
   }
 
   render()
   {
-    console.log(__dirname);
-
     return (
       <div className="game">
         <div className="first-part">
-          <img className="img" alt={"hangman"} src={window.location.origin + "/images/7.png"} />
+          <img className="img" alt={"hangman"} src={window.location.origin + this.imageFolder + this.imageName + this.imageExt} />
           <AlphabetTable className="alphabet-table" onLetterClick={this.onLetterClick} />
         </div>
         <div className="second-part">
-          <HiddenWord word={this.word}/>             
+          <HiddenWord ref={this.hiddenWord} word={this.state.word}/>             
         </div>
       </div>
     );
