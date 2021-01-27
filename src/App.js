@@ -73,16 +73,6 @@ class HiddenWord extends React.Component
   constructor(props)
   {
     super(props);
-
-    this.word = this.props.word;
-
-    const letterArray = [];
-    for (let i = 0; i < this.word.length; ++i)
-    {
-      letterArray.push({ letter: this.word[i], isHidden: false });
-    }
-
-    this.state = { letterArray };
   }
 
   updateWord = (letter) =>
@@ -102,11 +92,24 @@ class HiddenWord extends React.Component
     this.setState({ letterArray });
   }
 
+  generateHiddenWord = () =>
+  {
+    const word = this.props.word;
+
+    const letterArray = [];
+    for (let i = 0; i < word.length; ++i)
+    {
+      letterArray.push({ letter: word[i], isHidden: false });
+    }
+
+    return letterArray;
+  }
+
   render()
   {
     return (
       <div className="hidden-word">
-      { this.state.letterArray.map((element) => 
+      { this.generateHiddenWord().map((element) => 
       {
         return <LetterCell className="letter-cell" letter={element.letter} isHidden={element.isHidden} />;
       }) }
@@ -130,11 +133,12 @@ class Game extends React.Component
     this.imageExt = ".png";
   }
 
-  componentWillMount()
+  componentDidMount()
   {
-    fetch("http://localhost:4000/getRandomWord")
-      .then(response => response.json())    
-      .then(response => this.setState({ word: response.word }));
+    fetch("/getRandomWord")
+      .then(response => response.text())    
+      .then(response => this.setState({word: response}));
+      
   }
 
   onLetterClick = (letter) =>
