@@ -73,43 +73,36 @@ class HiddenWord extends React.Component
   constructor(props)
   {
     super(props);
+
+    const letterCount = props.letterCount;
+
+    const letterArray = [];
+    for (let i = 0; i < letterCount; ++i)
+    {
+      letterArray.push({ letter: "", isHidden: true });
+    }
+
+    this.state = { letterArray };
   }
 
-  updateWord = (letter) =>
+  updateWord = (letter, positions) =>
   {
-    const letterArray = this.state.letterArray;
-    
-    while (true)
+    const letterArray = this.state.letterArray;    
+
+    for (let i = 0; i < positions.length; ++i)
     {
-      const element = letterArray.find((element) => element.isHidden && element.letter == letter);
-      if (!element)
-      {
-        break;
-      }
-      element.isHidden = false;
+      letterArray[positions[i]].letter = letter;
+      letterArray[positions[i]].isHidden = false;
     }
 
     this.setState({ letterArray });
-  }
-
-  generateHiddenWord = () =>
-  {
-    const word = this.props.word;
-
-    const letterArray = [];
-    for (let i = 0; i < word.length; ++i)
-    {
-      letterArray.push({ letter: word[i], isHidden: false });
-    }
-
-    return letterArray;
   }
 
   render()
   {
     return (
       <div className="hidden-word">
-      { this.generateHiddenWord().map((element) => 
+      { this.state.letterArray.map((element) => 
       {
         return <LetterCell className="letter-cell" letter={element.letter} isHidden={element.isHidden} />;
       }) }
@@ -126,7 +119,7 @@ class Game extends React.Component
 
     this.hiddenWord = React.createRef();
 
-    this.state = { word: "LOLITA" };
+    this.state = { wordHash: "121512", letterCount: 8 };
 
     this.imageFolder = "/images/";
     this.imageName = 7;
@@ -135,15 +128,31 @@ class Game extends React.Component
 
   componentDidMount()
   {
-    fetch("/getRandomWord")
-      .then(response => response.text())    
-      .then(response => this.setState({word: response}));
-      
+    if (false)
+    {
+      fetch("/getRandomWord", { method: 'get' })
+        .then(response => { if (!response.ok) throw "server error"; return response.text();})  
+        .then(response => this.setState({ wordHash: response.wordHash, letterCount: response.letterCount}))
+        .catch(error => alert(error));      
+    }
   }
 
   onLetterClick = (letter) =>
   {
-    this.hiddenWord.current.updateWord(letter);
+    const body = { wordHash: this.state.wordHash, letter};
+    if (false)
+    {
+      fetch("/getRandomWord", 
+      {
+        method: 'post',
+        body: JSON.stringify(body)
+      })
+        .then(response => { if (!response.ok) throw "server error"; return response.text();})  
+        .then(response => this.hiddenWord.current.updateWord(letter, response))
+        .catch(error => alert(error));    
+    }
+
+    this.hiddenWord.current.updateWord(letter, [0,1]);
   }
 
   render()
@@ -155,7 +164,7 @@ class Game extends React.Component
           <AlphabetTable className="alphabet-table" onLetterClick={this.onLetterClick} />
         </div>
         <div className="second-part">
-          <HiddenWord ref={this.hiddenWord} word={this.state.word}/>             
+          <HiddenWord ref={this.hiddenWord} letterCount={this.state.letterCount}/>             
         </div>
       </div>
     );
