@@ -19,30 +19,44 @@ class MenuList extends React.Component
 
 class AlphabetTable extends React.Component
 {
-  render()
+  constructor()
   {
+    super();
+
     const alphabet = [];
 
     for (let i = 65; i < 90; i += 3)
     {
       const subArray = [];
       
-      subArray.push(String.fromCharCode(i));
-      subArray.push(String.fromCharCode(i + 1));
-      subArray.push(String.fromCharCode(i + 2));
+      subArray.push({letter: String.fromCharCode(i), isHidden: false});
+      subArray.push({letter: String.fromCharCode(i + 1), isHidden: false});
+      subArray.push({letter: String.fromCharCode(i + 2), isHidden: false});
     
       alphabet[i] = (subArray);
     }
-    alphabet[alphabet.length - 1][2] = "";
 
-    
+    alphabet[alphabet.length - 1][2].isHidden = true;
+
+    this.state = {alphabet};
+  }
+
+  hideLetter = (row, column) =>
+  {
+    const {alphabet} = this.state;
+    alphabet[row][column].isHidden = true;
+    this.setState({alphabet});
+  }
+
+  render()
+  {
     return (
       <table className="alphabet-table">
-      {alphabet.map((row, index) => (
+      {this.state.alphabet.map((element, index) => (
         <tr key={index}>
-          <td><button className="letter-button" onClick={ ()=>{this.props.onLetterClick(row[0])} }>{row[0]}</button></td>
-          <td><button className="letter-button" onClick={ ()=>{this.props.onLetterClick(row[1])} }>{row[1]}</button></td>
-          <td><button className="letter-button" onClick={ ()=>{this.props.onLetterClick(row[2])} }>{row[2]}</button></td>
+          <td><button className={this.state.alphabet[index][0].isHidden ? "hide-element " : "" + "letter-button"} onClick={ ()=>{this.props.onLetterClick(element[0].letter); this.hideLetter(index, 0);} }>{element[0].letter}</button></td>
+          <td><button className={this.state.alphabet[index][1].isHidden ? "hide-element " : "" + "letter-button"} onClick={ ()=>{this.props.onLetterClick(element[1].letter); this.hideLetter(index, 1);} }>{element[1].letter}</button></td>
+          <td><button className={this.state.alphabet[index][2].isHidden ? "hide-element " : "" + "letter-button"} onClick={ ()=>{this.props.onLetterClick(element[2].letter); this.hideLetter(index, 2);} }>{element[2].letter}</button></td>
         </tr>
       ))}
       </table>
