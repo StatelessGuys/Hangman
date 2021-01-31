@@ -61,8 +61,8 @@ class LetterCell extends React.Component
   {
     return (
       <div className="letter-cell">
-        <label className="letter">{this.props.isHidden ? "" : this.props.letter}</label>
-        <div className="letter-underscore"></div>             
+        <label className="letter">{this.props.isHidden ? "" : this.props.letter}</label>              
+        <div className="letter-underscore"></div>
       </div>
     );
   }
@@ -104,7 +104,7 @@ class HiddenWord extends React.Component
       <div className="hidden-word">
       { this.state.letterArray.map((element) => 
       {
-        return <LetterCell className="letter-cell" letter={element.letter} isHidden={element.isHidden} />;
+        return <LetterCell letter={element.letter} isHidden={element.isHidden} />;
       }) }
       </div>
     );
@@ -119,10 +119,9 @@ class Game extends React.Component
 
     this.hiddenWord = React.createRef();
 
-    this.state = { wordHash: "121512", letterCount: 8 };
+    this.state = { wordHash: "121512", letterCount: 8, imageName: 1 };
 
     this.imageFolder = "/images/";
-    this.imageName = 7;
     this.imageExt = ".png";
   }
 
@@ -137,6 +136,16 @@ class Game extends React.Component
     }
   }
 
+  getCurrentImageState = () =>
+  {
+    return window.location.origin + this.imageFolder + this.state.imageName + this.imageExt;
+  }
+
+  hangUpMan = () =>
+  {
+    this.setState({imageName: this.state.imageName + 1});
+  }
+
   onLetterClick = (letter) =>
   {
     const body = { wordHash: this.state.wordHash, letter};
@@ -148,7 +157,17 @@ class Game extends React.Component
         body: JSON.stringify(body)
       })
         .then(response => { if (!response.ok) throw "server error"; return response.text();})  
-        .then(response => this.hiddenWord.current.updateWord(letter, response))
+        .then(response => 
+          {
+            if (response.length != 0)
+            {
+              this.hiddenWord.current.updateWord(letter, response);
+            }
+            else
+            {
+              this.hangUpMan();
+            }            
+          })
         .catch(error => alert(error));    
     }
 
@@ -160,8 +179,8 @@ class Game extends React.Component
     return (
       <div className="game">
         <div className="first-part">
-          <img className="img" alt={"hangman"} src={window.location.origin + this.imageFolder + this.imageName + this.imageExt} />
-          <AlphabetTable className="alphabet-table" onLetterClick={this.onLetterClick} />
+          <img className="img" alt={"hangman"} src={this.getCurrentImageState()} />
+          <AlphabetTable onLetterClick={this.onLetterClick} />
         </div>
         <div className="second-part">
           <HiddenWord ref={this.hiddenWord} letterCount={this.state.letterCount}/>             
@@ -180,7 +199,7 @@ class App extends React.Component
     this.onNewGameClick = this.onNewGameClick.bind(this);
 
     this.state = { 
-                    activeComponent: "menu",
+                    activeComponent: "game",
                     components: { menu: <MenuList onNewGameClick={this.onNewGameClick}/>, game: <Game /> }
                  };
   }
