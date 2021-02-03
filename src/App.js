@@ -28,6 +28,7 @@ class AlphabetTable extends React.Component
 
     const alphabet = [];
 
+    let index = 0;
     for (let i = 65; i < 90; i += 3)
     {
       const subArray = [];
@@ -36,7 +37,7 @@ class AlphabetTable extends React.Component
       subArray.push({letter: String.fromCharCode(i + 1), classNames: this.generalStyle});
       subArray.push({letter: String.fromCharCode(i + 2), classNames: this.generalStyle});
     
-      alphabet[i] = (subArray);
+      alphabet[index++] = (subArray);
     }
 
     alphabet[alphabet.length - 1][2].classNames = this.hideStyle;
@@ -54,15 +55,25 @@ class AlphabetTable extends React.Component
     this.setState({alphabet});
   }
 
+  showAll = () =>
+  {
+    const {alphabet} = this.state;
+    for (let i = 0; i < alphabet.length; i++)
+    {
+      for (let j = 0; j < 3; ++j) alphabet[i][j].classNames = this.generalStyle;
+    }    
+    this.setState({alphabet});
+  }
+
   render()
   {
     return (
       <table className="alphabet-table">
       {this.state.alphabet.map((element, index) => (
         <tr key={index}>
-          <td><button className={this.state.alphabet[index][0].classNames} onClick={ ()=>{this.props.onLetterClick(element[0].letter); this.hideLetter(index, 0);} }>{element[0].letter}</button></td>
-          <td><button className={this.state.alphabet[index][1].classNames} onClick={ ()=>{this.props.onLetterClick(element[1].letter); this.hideLetter(index, 1);} }>{element[1].letter}</button></td>
-          <td><button className={this.state.alphabet[index][2].classNames} onClick={ ()=>{this.props.onLetterClick(element[2].letter); this.hideLetter(index, 2);} }>{element[2].letter}</button></td>
+          <td><button disabled={this.props.disabled && "disabled"} className={this.state.alphabet[index][0].classNames} onClick={ ()=>{this.props.onLetterClick(element[0].letter); this.hideLetter(index, 0);} }>{element[0].letter}</button></td>
+          <td><button disabled={this.props.disabled && "disabled"} className={this.state.alphabet[index][1].classNames} onClick={ ()=>{this.props.onLetterClick(element[1].letter); this.hideLetter(index, 1);} }>{element[1].letter}</button></td>
+          <td><button disabled={this.props.disabled && "disabled"} className={this.state.alphabet[index][2].classNames} onClick={ ()=>{this.props.onLetterClick(element[2].letter); this.hideLetter(index, 2);} }>{element[2].letter}</button></td>
         </tr>
       ))}
       </table>
@@ -126,6 +137,19 @@ class HiddenWord extends React.Component
   }
 }
 
+class GameOver extends React.Component
+{
+  render()
+  {
+    return (
+      <div className="game-over">
+        <label>Game Over</label>
+        <button onClick={()=>this.props.onRestartPressed()}>Restart</button>
+      </div>
+    );
+  }
+}
+
 class Game extends React.Component
 {
   constructor()
@@ -133,15 +157,21 @@ class Game extends React.Component
     super();
 
     this.hiddenWord = React.createRef();
+    this.alphabetTable = React.createRef();
 
-    this.state = { wordHash: "121512", letterCount: 8, imageName: 1 };
+    this.state = { wordHash: "121512", letterCount: 8, imageName: 1, isGameOver: false };
 
     this.imageFolder = "/images/";
     this.imageExt = ".png";
-    this.imageCount = 8;
+    this.imageCount = 7;
   }
 
   componentDidMount()
+  {
+    this.fetchRandomWord();
+  }
+
+  fetchRandomWord = () =>
   {
     if (false)
     {
@@ -156,11 +186,19 @@ class Game extends React.Component
     return window.location.origin + this.imageFolder + this.state.imageName + this.imageExt;
   }
 
+  onRestartPressed = () =>
+  {
+    this.imageCount = 7;
+    this.setState({isGameOver: false, imageName: 1});
+    this.alphabetTable.current.showAll();
+    this.fetchRandomWord();
+  }
+
   checkGameOver = () =>
   {
     if (!--this.imageCount)
     {
-      //set gameover
+      this.setState({isGameOver: true});
     }
   }
 
@@ -196,6 +234,7 @@ class Game extends React.Component
     }
 
     this.hiddenWord.current.updateWord(letter, [0,1]);
+    this.hangUpMan();
   }
 
   render()
@@ -204,11 +243,12 @@ class Game extends React.Component
       <div className="game">
         <div className="first-part">
           <img className="img" alt={"hangman"} src={this.getCurrentImageState()} />
-          <AlphabetTable onLetterClick={this.onLetterClick} />
+          <AlphabetTable ref={this.alphabetTable} disabled={this.state.isGameOver} onLetterClick={this.onLetterClick} />
         </div>
         <div className="second-part">
-          <HiddenWord ref={this.hiddenWord} letterCount={this.state.letterCount}/>             
+          <HiddenWord ref={this.hiddenWord} letterCount={this.state.letterCount} />             
         </div>
+        {this.state.isGameOver && <GameOver onRestartPressed={this.onRestartPressed}/>}
       </div>
     );
   }
