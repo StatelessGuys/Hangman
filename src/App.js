@@ -23,20 +23,23 @@ class AlphabetTable extends React.Component
   {
     super();
 
+    this.generalStyle = "letter-button";
+    this.hideStyle = "hide-element";
+
     const alphabet = [];
 
     for (let i = 65; i < 90; i += 3)
     {
       const subArray = [];
       
-      subArray.push({letter: String.fromCharCode(i), isHidden: false});
-      subArray.push({letter: String.fromCharCode(i + 1), isHidden: false});
-      subArray.push({letter: String.fromCharCode(i + 2), isHidden: false});
+      subArray.push({letter: String.fromCharCode(i), classNames: this.generalStyle});
+      subArray.push({letter: String.fromCharCode(i + 1), classNames: this.generalStyle});
+      subArray.push({letter: String.fromCharCode(i + 2), classNames: this.generalStyle});
     
       alphabet[i] = (subArray);
     }
 
-    alphabet[alphabet.length - 1][2].isHidden = true;
+    alphabet[alphabet.length - 1][2].classNames = this.hideStyle;
 
     this.state = {alphabet};
   }
@@ -44,7 +47,10 @@ class AlphabetTable extends React.Component
   hideLetter = (row, column) =>
   {
     const {alphabet} = this.state;
-    alphabet[row][column].isHidden = true;
+    if (!alphabet[row][column].classNames.includes(this.hideStyle))
+    {
+      alphabet[row][column].classNames += " " + this.hideStyle;
+    }
     this.setState({alphabet});
   }
 
@@ -54,9 +60,9 @@ class AlphabetTable extends React.Component
       <table className="alphabet-table">
       {this.state.alphabet.map((element, index) => (
         <tr key={index}>
-          <td><button className={this.state.alphabet[index][0].isHidden ? "hide-element " : "" + "letter-button"} onClick={ ()=>{this.props.onLetterClick(element[0].letter); this.hideLetter(index, 0);} }>{element[0].letter}</button></td>
-          <td><button className={this.state.alphabet[index][1].isHidden ? "hide-element " : "" + "letter-button"} onClick={ ()=>{this.props.onLetterClick(element[1].letter); this.hideLetter(index, 1);} }>{element[1].letter}</button></td>
-          <td><button className={this.state.alphabet[index][2].isHidden ? "hide-element " : "" + "letter-button"} onClick={ ()=>{this.props.onLetterClick(element[2].letter); this.hideLetter(index, 2);} }>{element[2].letter}</button></td>
+          <td><button className={this.state.alphabet[index][0].classNames} onClick={ ()=>{this.props.onLetterClick(element[0].letter); this.hideLetter(index, 0);} }>{element[0].letter}</button></td>
+          <td><button className={this.state.alphabet[index][1].classNames} onClick={ ()=>{this.props.onLetterClick(element[1].letter); this.hideLetter(index, 1);} }>{element[1].letter}</button></td>
+          <td><button className={this.state.alphabet[index][2].classNames} onClick={ ()=>{this.props.onLetterClick(element[2].letter); this.hideLetter(index, 2);} }>{element[2].letter}</button></td>
         </tr>
       ))}
       </table>
@@ -66,11 +72,6 @@ class AlphabetTable extends React.Component
 
 class LetterCell extends React.Component
 {
-  constructor(props)
-  {
-    super(props);
-  }
-
   render()
   {
     return (
@@ -137,6 +138,7 @@ class Game extends React.Component
 
     this.imageFolder = "/images/";
     this.imageExt = ".png";
+    this.imageCount = 8;
   }
 
   componentDidMount()
@@ -144,9 +146,8 @@ class Game extends React.Component
     if (false)
     {
       fetch("/getRandomWord", { method: 'get' })
-        .then(response => { if (!response.ok) throw "server error"; return response.text();})  
-        .then(response => this.setState({ wordHash: response.wordHash, letterCount: response.letterCount}))
-        .catch(error => alert(error));      
+        .then(response => { if (!response.ok) throw "server error"; return response.text();}, error => alert("server error"))  
+        .then(response => this.setState({ wordHash: response.wordHash, letterCount: response.letterCount}), error => alert("parse data error"));    
     }
   }
 
@@ -155,9 +156,18 @@ class Game extends React.Component
     return window.location.origin + this.imageFolder + this.state.imageName + this.imageExt;
   }
 
+  checkGameOver = () =>
+  {
+    if (!--this.imageCount)
+    {
+      //set gameover
+    }
+  }
+
   hangUpMan = () =>
   {
     this.setState({imageName: this.state.imageName + 1});
+    this.checkGameOver();
   }
 
   onLetterClick = (letter) =>
@@ -165,7 +175,7 @@ class Game extends React.Component
     const body = { wordHash: this.state.wordHash, letter};
     if (false)
     {
-      fetch("/getRandomWord", 
+      fetch("/getLetterPositions", 
       {
         method: 'post',
         body: JSON.stringify(body)
@@ -173,7 +183,7 @@ class Game extends React.Component
         .then(response => { if (!response.ok) throw "server error"; return response.text();})  
         .then(response => 
           {
-            if (response.length != 0)
+            if (response.length !== 0)
             {
               this.hiddenWord.current.updateWord(letter, response);
             }
