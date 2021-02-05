@@ -19,4 +19,6 @@ public class WordInfo {
     public void setLetterCount(Long letterCount) {
         this.letterCount = letterCount;
     }
+
+
 }
