@@ -96,19 +96,16 @@ class LetterCell extends React.Component
 
 class HiddenWord extends React.Component
 {
-  constructor(props)
-  {
-    super(props);
-
+  static getDerivedStateFromProps(props, state)
+  {    
     const letterCount = props.letterCount;
-
     const letterArray = [];
     for (let i = 0; i < letterCount; ++i)
     {
       letterArray.push({ letter: "", isHidden: true });
     }
 
-    this.state = { letterArray };
+    return {letterArray};
   }
 
   updateWord = (letter, positions) =>
@@ -159,7 +156,7 @@ class Game extends React.Component
     this.hiddenWord = React.createRef();
     this.alphabetTable = React.createRef();
 
-    this.state = { wordHash: "121512", letterCount: 8, imageName: 1, isGameOver: false };
+    this.state = { wordHash: 0, letterCount: 1, imageName: 1, isGameOver: false };
 
     this.imageFolder = "/images/";
     this.imageExt = ".png";
@@ -173,10 +170,10 @@ class Game extends React.Component
 
   fetchRandomWord = () =>
   {
-    if (false)
+    if (true)
     {
       fetch("/getRandomWord", { method: 'get' })
-        .then(response => { if (!response.ok) throw "server error"; return response.text();}, error => alert("server error"))  
+        .then(response => { if (!response.ok) throw "server error"; return response.json();}, error => alert("server error"))  
         .then(response => this.setState({ wordHash: response.wordHash, letterCount: response.letterCount}), error => alert("parse data error"));    
     }
   }
