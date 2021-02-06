@@ -96,17 +96,23 @@ class LetterCell extends React.Component
 
 class HiddenWord extends React.Component
 {
-  static getDerivedStateFromProps(props, state)
-  {    
-    const letterCount = props.letterCount;
+  constructor(props)
+  {
+    super(props);
+
+    this.state = { letterArray: [], letterCount: 0 };
+  }
+
+  setWord = (letterCount) =>
+  {
     const letterArray = [];
     for (let i = 0; i < letterCount; ++i)
     {
       letterArray.push({ letter: "", isHidden: true });
     }
 
-    return {letterArray};
-  }
+    this.setState({letterArray, letterCount});
+   }
 
   updateWord = (letter, positions) =>
   {
@@ -147,6 +153,37 @@ class GameOver extends React.Component
   }
 }
 
+class ImageHelper
+{
+  constructor(hitPoint)
+  {
+    this.imageFolder = window.location.origin + "/images/";
+    this.imageExt = ".png";
+    this.imageCount = hitPoint;
+    this.currentImage = 1;
+  }
+
+  nextImage = () =>
+  {
+    this.currentImage++;
+  }
+
+  isImageRunOut = () =>
+  {
+    return this.currentImage === this.imageCount;
+  }
+
+  resetState = () =>
+  {
+    this.currentImage = 1;
+  }
+
+  getImagePath = () =>
+  {
+    return this.imageFolder + this.currentImage + this.imageExt;
+  }
+}
+
 class Game extends React.Component
 {
   constructor()
@@ -158,9 +195,7 @@ class Game extends React.Component
 
     this.state = { wordHash: 0, letterCount: 1, imageName: 1, isGameOver: false };
 
-    this.imageFolder = "/images/";
-    this.imageExt = ".png";
-    this.imageCount = 7;
+    this.imageHelper = new ImageHelper(8);
   }
 
   componentDidMount()
@@ -173,27 +208,26 @@ class Game extends React.Component
     if (true)
     {
       fetch("/getRandomWord", { method: 'get' })
-        .then(response => { if (!response.ok) throw "server error"; return response.json();}, error => alert("server error"))  
-        .then(response => this.setState({ wordHash: response.wordHash, letterCount: response.letterCount}), error => alert("parse data error"));    
+        .then(response => response.json())  
+        .then(response => 
+        {
+          this.hiddenWord.current.setWord(response.letterCount);
+          this.setState({ wordHash: response.wordHash, letterCount: response.letterCount});
+        }, error => {throw new Error("Server error");});    
     }
-  }
-
-  getCurrentImageState = () =>
-  {
-    return window.location.origin + this.imageFolder + this.state.imageName + this.imageExt;
   }
 
   onRestartPressed = () =>
   {
-    this.imageCount = 7;
-    this.setState({isGameOver: false, imageName: 1});
+    this.setState({isGameOver: false});
     this.alphabetTable.current.showAll();
+    this.imageHelper.resetState();
     this.fetchRandomWord();
   }
 
   checkGameOver = () =>
   {
-    if (!--this.imageCount)
+    if (this.imageHelper.isImageRunOut())
     {
       this.setState({isGameOver: true});
     }
@@ -201,8 +235,9 @@ class Game extends React.Component
 
   hangUpMan = () =>
   {
-    this.setState({imageName: this.state.imageName + 1});
+    this.imageHelper.nextImage();
     this.checkGameOver();
+    this.forceUpdate();
   }
 
   onLetterClick = (letter) =>
@@ -215,19 +250,19 @@ class Game extends React.Component
         method: 'post',
         body: JSON.stringify(body)
       })
-        .then(response => { if (!response.ok) throw "server error"; return response.text();})  
+        .then(response => response.json())  
         .then(response => 
           {
-            if (response.length !== 0)
+            if (response.positions.length !== 0)
             {
-              this.hiddenWord.current.updateWord(letter, response);
+              this.hiddenWord.current.updateWord(letter, response.positions);
             }
             else
             {
               this.hangUpMan();
             }            
-          })
-        .catch(error => alert(error));    
+          }, error => {throw new Error("Server error")});
+         
     }
 
     this.hiddenWord.current.updateWord(letter, [0,1]);
@@ -239,11 +274,11 @@ class Game extends React.Component
     return (
       <div className="game">
         <div className="first-part">
-          <img className="img" alt={"hangman"} src={this.getCurrentImageState()} />
+          <img className="img" alt={"hangman"} src={this.imageHelper.getImagePath()} />
           <AlphabetTable ref={this.alphabetTable} disabled={this.state.isGameOver} onLetterClick={this.onLetterClick} />
         </div>
         <div className="second-part">
-          <HiddenWord ref={this.hiddenWord} letterCount={this.state.letterCount} />             
+          <HiddenWord ref={this.hiddenWord} />             
         </div>
         {this.state.isGameOver && <GameOver onRestartPressed={this.onRestartPressed}/>}
       </div>
