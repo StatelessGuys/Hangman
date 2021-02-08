@@ -53,11 +53,20 @@ public class WordController {
 
     @RequestMapping(value = "/getLetterPositions", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public PositionWord LetterPositions(@RequestParam (value = "param1", required = true) String param1) {
+    public PositionWord LetterPositions(@RequestParam (value = "hashcode", required = true) Long hash,
+                                        @RequestParam (value = "letter", required = true) String letter)
+    {
 
         PositionWord positionWord = new PositionWord();
+        long hashWord = randomWord.hashCode();
 
-        positionWord.setPosition(randomWord.indexOf(param1));
+        if (hashWord == hash) {
+            positionWord.setPosition(randomWord.indexOf(letter));
+        }
+        else if(hashWord != hash) {
+            positionWord.setPosition(404);
+        }
+
         return positionWord;
     }
 }
