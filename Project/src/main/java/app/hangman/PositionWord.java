@@ -1,13 +1,17 @@
 package app.hangman;
 
-public class PositionWord {
-    int position;
+import java.util.List;
 
-    public void setPosition(int position) {
+public class PositionWord {
+    List<Integer> position;
+
+    public void setPosition(List<Integer> position) {
         this.position = position;
     }
 
-    public int[] getPosition() {
-        return new int[]{position};
+    public List<Integer> getPosition() {
+        return position;
     }
+
+
 }

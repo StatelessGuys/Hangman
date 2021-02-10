@@ -7,8 +7,7 @@ public class Word {
         return word;
     }
 
-    public String setWordByHash(String word) {
+    public void setWord(String word) {
         this.word = word;
-        return word;
     }
 }
