@@ -3,7 +3,8 @@ package app.hangman;
 public class Word {
     private String word;
 
-    public void setWord(String word) {
+    public Word(String word)
+    {
         this.word = word;
     }
 

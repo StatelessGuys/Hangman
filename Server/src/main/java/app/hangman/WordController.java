@@ -23,6 +23,17 @@ public class WordController {
         loadData();   
     }
 
+    private String findWordByHash(Long wordHash)
+    {
+        for(String word : words) {
+            if(word.hashCode() == wordHash) {
+                return word;
+            }
+        }
+
+        return "";
+    }
+
     private void loadData()
     {
         this.words.add("MAN");
@@ -47,13 +58,8 @@ public class WordController {
     @RequestMapping(value = "/getWordByHash", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Word getWordByHash(@RequestParam(value = "wordHash", required = true) Long wordHash) {
-        Word word = new Word();
-        for(String name : words) {
-            if(name.hashCode() == wordHash) {
-                word.setWord(name);
-                break;
-            }
-        }
+        Word word = new Word(this.findWordByHash(wordHash));
+        
         return word;
     }
 
@@ -63,19 +69,19 @@ public class WordController {
                                         @RequestParam (value = "letter", required = true) String letter) {
         PositionWord positionWord = new PositionWord();
 
-        for (String name : words) {
-            if (name.hashCode() == wordHash) {
-                int index = 0;
-                while (index != -1) {
-                    index = name.indexOf(letter, index);
-                    if (index != -1) {
-                        positionWord.addPosition(index);
-                        index++;
-                    }
+        String word = this.findWordByHash(wordHash);
+        if (!word.isEmpty())
+        {
+            int index = 0;
+            while (index != -1) {
+                index = word.indexOf(letter, index);
+                if (index != -1) {
+                    positionWord.addPosition(index);
+                    index++;
                 }
-                break;
             }
         }
+        
         return positionWord;
     }
 }
