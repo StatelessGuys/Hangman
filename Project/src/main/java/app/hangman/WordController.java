@@ -7,41 +7,29 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Stream;
 
 @RestController
 public class WordController {
 
+    private HashSet<String> words = new HashSet<>();;
+    private Random random;
 
-    HashSet<String> word = new HashSet<String>();
-    Random random = new Random();
-
-    {
-        word.add("MAN");
-        word.add("HOUSE");
-        word.add("STAR");
-        word.add("LOVE");
-        word.add("LLLL");
-
+    WordController() {
+        words.add("MAN");
+        words.add("HOUSE");
+        words.add("STAR");
+        words.add("LOVE");
+        words.add("LLLL");
     }
-
-    static public String randomWord;
-
-    {
-        randomWord = word.stream().skip(random.nextInt(word.size())).findFirst().get();
-    }
-
-    long hash = randomWord.hashCode();
 
     @RequestMapping(value = "/getRandomWord", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public WordInfo controler() {
+        random = new Random();
 
-
-
+        String randomWord = words.stream().skip(random.nextInt(words.size())).findFirst().get();
         long sizeWord = randomWord.chars().count();
         long hashWord = randomWord.hashCode();
 
@@ -54,12 +42,14 @@ public class WordController {
 
     @RequestMapping(value = "/getWordByHash", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Word WordByHash(@RequestParam (value = "wordHash", required = true) Long wordHash) {
+    public Word WordByHash(@RequestParam(value = "wordHash", required = true) Long wordHash) {
 
         Word word = new Word();
-
-        if (wordHash == hash) {
-            word.setWord(randomWord);
+        for(String name : words) {
+            if(name.hashCode() == wordHash) {
+                word.setWord(name);
+                break;
+            }
         }
         return word;
     }
@@ -67,30 +57,39 @@ public class WordController {
     @RequestMapping(value = "/getLetterPositions", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public PositionWord LetterPositions(@RequestParam (value = "wordHash", required = true) Long wordHash,
-                                        @RequestParam (value = "letter", required = true) String letter)
-    {
+                                        @RequestParam (value = "letter", required = true) String letter) {
         PositionWord positionWord = new PositionWord();
 
 
-        if (wordHash == hash) {
+//        Iterator<String> itr = words.iterator();
+//
+//        while (itr.hasNext()) {
+//            String findWord = itr.next();
+//            if(findWord.hashCode() == wordHash) {
+//
+//                break;
+//            }
+//        }
 
-            List<Integer> indexes = new ArrayList<>();
+        for (String name : words) {
 
-            int index = 0;
-            while(index != -1){
-                index = randomWord.indexOf(letter, index);
-                if (index != -1) {
-                    indexes.add(index);
-                    index++;
+            if (name.hashCode() == wordHash) {
+
+                List<Integer> indexes = new ArrayList<>();
+
+                int index = 0;
+                while (index != -1) {
+                    index = name.indexOf(letter, index);
+                    if (index != -1) {
+                        indexes.add(index);
+                        index++;
+                    }
                 }
+                positionWord.setPosition(indexes);
+                break;
             }
-            positionWord.setPosition(indexes);
         }
-
-        else if(wordHash != hash) {
-            positionWord.setPosition(null);
-        }
-
         return positionWord;
     }
+}
 }
