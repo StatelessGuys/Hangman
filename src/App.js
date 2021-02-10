@@ -230,6 +230,23 @@ class Game extends React.Component
     if (this.imageHelper.isImageRunOut())
     {
       this.setState({isGameOver: true});
+
+      const params = { wordHash: this.state.wordHash };    
+      const query = Object.keys(params)
+                  .map(name => encodeURIComponent(name) + '=' + encodeURIComponent(params[name]))
+                  .join('&');
+      const url = "/getWordByHash/?" + query;
+      if (false)
+      {
+        fetch(url, { method: 'get' })
+          .then(response => response.json())  
+          .then(response => 
+            {
+              //set real word
+              //HiddenWord->openWord(response.word);
+            }, error => {throw new Error("Server error")});
+          
+      }
     }
   }
 
@@ -242,14 +259,14 @@ class Game extends React.Component
 
   onLetterClick = (letter) =>
   {
-    const body = { wordHash: this.state.wordHash, letter};
-    if (false)
+    const params = { wordHash: this.state.wordHash, letter};    
+    const query = Object.keys(params)
+                 .map(name => encodeURIComponent(name) + '=' + encodeURIComponent(params[name]))
+                 .join('&');
+    const url = "/getLetterPositions/?" + query;
+    if (true)
     {
-      fetch("/getLetterPositions", 
-      {
-        method: 'post',
-        body: JSON.stringify(body)
-      })
+      fetch(url, { method: 'get' })
         .then(response => response.json())  
         .then(response => 
           {
@@ -264,9 +281,6 @@ class Game extends React.Component
           }, error => {throw new Error("Server error")});
          
     }
-
-    this.hiddenWord.current.updateWord(letter, [0,1]);
-    this.hangUpMan();
   }
 
   render()
