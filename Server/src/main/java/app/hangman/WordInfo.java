@@ -1,9 +1,14 @@
 package app.hangman;
 
 public class WordInfo {
-    Long wordHash;
-    Long letterCount;
+    private Long wordHash;
+    private Long letterCount;
 
+    public WordInfo(Long hash, Long count)
+    {
+        this.wordHash = hash;
+        this.letterCount = count;
+    }
     public Long getWordHash() {
         return wordHash;
     }
@@ -11,14 +16,4 @@ public class WordInfo {
     public Long getLetterCount() {
         return letterCount;
     }
-
-    public void setWordHash(Long wordHash) {
-        this.wordHash = wordHash;
-    }
-
-    public void setLetterCount(Long letterCount) {
-        this.letterCount = letterCount;
-    }
-
-
 }

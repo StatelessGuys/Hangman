@@ -1,17 +1,21 @@
 package app.hangman;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class PositionWord {
-    List<Integer> positions;
+    private ArrayList<Integer> positions;
 
-    public void setPosition(List<Integer> positions) {
-        this.positions = positions;
+    public PositionWord()
+    {
+        this.positions = new ArrayList<Integer>();
     }
 
-    public List<Integer> getPosition() {
+    public void addPosition(Integer position) {
+        this.positions.add(position);
+    }
+
+    public ArrayList<Integer> getPositions()
+    {
         return positions;
     }
-
-
 }
