@@ -16,11 +16,22 @@ public class WordController {
     private Random random;
 
     public WordController() {
-        words = new ArrayList<>();
-        random = new Random();
+        words = new ArrayList<>();   
+        random = new Random();  
 
         //in future it should read data from db
-        loadData();
+        loadData();   
+    }
+
+    private String findWordByHash(Long wordHash)
+    {
+        for(String word : words) {
+            if(word.hashCode() == wordHash) {
+                return word;
+            }
+        }
+
+        return "";
     }
 
     private void loadData()
@@ -47,35 +58,30 @@ public class WordController {
     @RequestMapping(value = "/getWordByHash", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Word getWordByHash(@RequestParam(value = "wordHash", required = true) Long wordHash) {
-        Word word = new Word();
-        for(String name : words) {
-            if(name.hashCode() == wordHash) {
-                word.setWord(name);
-                break;
-            }
-        }
+        Word word = new Word(this.findWordByHash(wordHash));
+        
         return word;
     }
 
     @RequestMapping(value = "/getLetterPositions", method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public PositionWord getLetterPositions(@RequestParam (value = "wordHash", required = true) Long wordHash,
-                                           @RequestParam (value = "letter", required = true) String letter) {
+                                        @RequestParam (value = "letter", required = true) String letter) {
         PositionWord positionWord = new PositionWord();
 
-        for (String name : words) {
-            if (name.hashCode() == wordHash) {
-                int index = 0;
-                while (index != -1) {
-                    index = name.indexOf(letter, index);
-                    if (index != -1) {
-                        positionWord.addPosition(index);
-                        index++;
-                    }
+        String word = this.findWordByHash(wordHash);
+        if (!word.isEmpty())
+        {
+            int index = 0;
+            while (index != -1) {
+                index = word.indexOf(letter, index);
+                if (index != -1) {
+                    positionWord.addPosition(index);
+                    index++;
                 }
-                break;
             }
         }
+        
         return positionWord;
     }
 
@@ -84,4 +90,5 @@ public class WordController {
         DataBase dbo = new DataBase();
         return dbo.index();
     }
+
 }
