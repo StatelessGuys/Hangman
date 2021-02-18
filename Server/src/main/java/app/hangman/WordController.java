@@ -84,4 +84,11 @@ public class WordController {
         
         return positionWord;
     }
+
+    @RequestMapping(value = "/get")
+    public List<WordJDBC> ge() {
+        DataBase dbo = new DataBase();
+        return dbo.index();
+    }
+
 }

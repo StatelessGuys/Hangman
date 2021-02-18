@@ -25,3 +25,5 @@ yarn-error.log*
 .eslintcache
 
 /Server/target/*
+/Server/.idea/*
+/Server/*.iml
