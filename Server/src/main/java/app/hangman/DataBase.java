@@ -4,45 +4,55 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataBase {
-    public static final String URL = "jdbc:mariadb://localhost:3306/wordscollection";
-    public static final String USERNAME = "root";
-    public static final String PASSWORD = "Goroan1974";
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
-    private  static Connection connection;
+import java.lang.Exception;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+ 
+
+public class DataBase {
+    private static final String URL = "jdbc:mariadb://localhost:";
+    private static final String CONFIG_FILE_PATH = System.getProperty("user.dir") + "/../configs/db_config.conf";
+    private static final String DB_DRIVER = "org.mariadb.jdbc.Driver";
+    private static Connection connection = null;
 
     static {
         try {
-            Class.forName("org.mariadb.jdbc.Driver");
-        }catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+            Class.forName(DB_DRIVER);
 
-        try {
-            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-        }catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
+            String configJson = new String(Files.readAllBytes(Paths.get(CONFIG_FILE_PATH)));
+            DBConfig dbConfig = new ObjectMapper().readValue(configJson, DBConfig.class);
+
+            connection = DriverManager.getConnection(formattedUrl(dbConfig), dbConfig.user, dbConfig.password);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }   
     }
 
-    public List<WordJDBC> index() {
-        List<WordJDBC> word = new ArrayList<>();
+    private static String formattedUrl(DBConfig dbConfig)
+    {
+        return URL + dbConfig.port + "/" + dbConfig.dbName;
+    }
+
+    public List<String> readWords() {
+        List<String> words = new ArrayList<>();
 
         try {
             Statement statement = connection.createStatement();
-            String SQL = "SELECT * FROM  words";
+            String SQL = "SELECT word FROM  words";
             ResultSet resultSet = statement.executeQuery(SQL);
 
             while (resultSet.next()) {
-                WordJDBC wordJDBC = new WordJDBC();
-                wordJDBC.setId(resultSet.getInt("ID"));
-                wordJDBC.setWord(resultSet.getString("words"));
-                word.add(wordJDBC);
+                String word = resultSet.getString("word");
+                words.add(word);
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
 
-        return  word;
+        return  words;
     }
 }

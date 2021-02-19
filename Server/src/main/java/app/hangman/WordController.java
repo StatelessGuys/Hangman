@@ -12,14 +12,15 @@ import java.util.stream.Stream;
 @RestController
 public class WordController {
 
-    private ArrayList<String> words;
+    private List<String> words;
     private Random random;
+    private DataBase dbo;
 
     public WordController() {
         words = new ArrayList<>();   
-        random = new Random();  
+        random = new Random();
+        dbo = new DataBase();
 
-        //in future it should read data from db
         loadData();   
     }
 
@@ -36,11 +37,7 @@ public class WordController {
 
     private void loadData()
     {
-        this.words.add("MAN");
-        this.words.add("HOUSE");
-        this.words.add("STAR");
-        this.words.add("LOVE");
-        this.words.add("LLLL");
+        this.words = dbo.readWords();
     }
 
     @RequestMapping(value = "/getRandomWord", method = RequestMethod.GET,
@@ -84,11 +81,4 @@ public class WordController {
         
         return positionWord;
     }
-
-    @RequestMapping(value = "/get")
-    public List<WordJDBC> ge() {
-        DataBase dbo = new DataBase();
-        return dbo.index();
-    }
-
 }
