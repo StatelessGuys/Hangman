@@ -27,3 +27,6 @@ yarn-error.log*
 /Server/target/*
 /Server/.idea/*
 /Server/*.iml
+/Server/.classpath
+/Server/.project
+/Server/.settings/*
